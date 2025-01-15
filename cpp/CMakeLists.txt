@@ -6,11 +6,10 @@ set(CMAKE_CXX_STANDARD 14)
 find_package(OpenCV REQUIRED)
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-
 add_executable(cpp src/main.cpp
-        src/inference.hpp
-        src/detect.hpp
-        src/preprocess.hpp
+        src/inference.cpp
+        src/detect.cpp
+        src/preprocess.cpp
         src/Common.hpp)
 
 

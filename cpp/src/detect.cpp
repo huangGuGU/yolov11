@@ -1,12 +1,4 @@
-//
-// Created by 黄梓浩 on 2025/1/15.
-//
-
-#ifndef CPP_DETECT_HPP
-#define CPP_DETECT_HPP
-
-#endif //CPP_DETECT_HPP
-#include "inference.hpp"
+#include "Common.hpp"
 
 void camera_detect() {
     Inference I;
@@ -58,7 +50,7 @@ void video_detect(const string &video_path, const string &output_path) {
         if (entry.path().filename() == ".DS_Store") {
             continue;
         }
-        cout << entry.path().filename() << " processing..."<<endl;
+        cout << entry.path().filename() << " processing...";
         auto start = std::chrono::high_resolution_clock::now();
         cv::VideoCapture cap(entry.path());
         if (!cap.isOpened()) {
@@ -71,7 +63,7 @@ void video_detect(const string &video_path, const string &output_path) {
         int width = int(cap.get(cv::CAP_PROP_FRAME_WIDTH));
         int height = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
         int videoLength = totalFrames / fps;
-        cout << "video length: " <<videoLength << " s"<<endl;
+        cout << "           video length: " <<videoLength << " s";
 
         string output_video_path = output_path + "/" + string(entry.path().filename());
         cv::VideoWriter writer(output_video_path, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), fps,
@@ -94,7 +86,7 @@ void video_detect(const string &video_path, const string &output_path) {
         cap.release();
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        cout << entry.path().filename() << " done    "<< "Elapsed time: " << duration.count()/1000 << " s" << endl;
-        cout <<"------------------------------------------------------------------------------------------"<< endl;
+        cout << entry.path().filename() << "           Elapsed time: " << duration.count()/1000 << " s" << endl;
+        cout <<string(160, '-')<< endl;
     }
 }

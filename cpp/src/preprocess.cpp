@@ -1,15 +1,12 @@
-//
-// Created by 黄梓浩 on 2025/1/15.
-//
-
-#ifndef CPP_PREPROCESS_HPP
-#define CPP_PREPROCESS_HPP
-
-#endif //CPP_PREPROCESS_HPP
-#include "inference.hpp"
+#include "Common.hpp"
 
 
+void make_dir(const string &dirPath){
+    if (!fs::exists(dirPath)) {
+    fs::create_directory(dirPath);  // 创建目录
+    }
 
+}
 
 void write2txt(const string &txt_path,const string &label){
     ofstream file(txt_path);
