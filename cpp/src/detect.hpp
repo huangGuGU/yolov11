@@ -17,6 +17,7 @@ void camera_detect() {
         return;
     }
     cv::Mat frame;
+    vector<vector<float>> labels;
     while (true) {
         cap >> frame;
         if (frame.empty()) {
@@ -25,27 +26,33 @@ void camera_detect() {
         }
         I.get_img(frame);
         I.infer_img();
-        cv::imshow("Detections", I.nms());
+        tie(frame,labels) = I.nms();
+        cv::imshow("Detections", frame);
         cv::waitKey(1);
     }
     cap.release();
     cv::destroyAllWindows();
 }
 
-void img_detect(const string &img_path) {
+void img_detect(const string &img_path,const string &save_path) {
     Inference I;
+    vector<vector<float>> labels;
+    cv::Mat frame;
     for (const auto &entry: fs::directory_iterator(img_path)) {
         if (entry.path().filename() == ".DS_Store") {
             continue;
         }
         I.get_img(entry.path());
         I.infer_img();
-        cv::imshow("Detections", I.nms());
+        tie(frame,labels) = I.nms();
+        string save_img_path = save_path+"/"+string(entry.path().filename());
+        cv::imwrite( save_img_path,frame);
+        cv::imshow("Detections", frame);
         cv::waitKey(1);
     }
 }
 
-void vide_detect(const string &video_path, const string &output_path) {
+void video_detect(const string &video_path, const string &output_path) {
     Inference I;
     for (const auto &entry: fs::directory_iterator(video_path)) {
         if (entry.path().filename() == ".DS_Store") {
@@ -72,7 +79,7 @@ void vide_detect(const string &video_path, const string &output_path) {
         cv::VideoWriter writer(output_video_path, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), fps,
                                cv::Size(width, height));
         cap.set(cv::CAP_PROP_POS_FRAMES, 0);
-
+        vector<vector<float>> labels;
         // 循环读取视频的每一帧，直到达到切割的结束帧
         for (int j = 0; j < totalFrames; ++j) {
             Mat frame;
@@ -82,7 +89,7 @@ void vide_detect(const string &video_path, const string &output_path) {
             }
             I.get_img(frame);
             I.infer_img();
-            frame = I.nms();
+            tie(frame,labels) = I.nms();
             writer.write(frame);
         }
         // 释放资源
@@ -90,7 +97,7 @@ void vide_detect(const string &video_path, const string &output_path) {
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
         cout << entry.path().filename() << " done    "<< "Elapsed time: " << duration.count()/1000 << " s" << endl;
-
+        cout <<"------------------------------------------------------------------------------------------"<< endl;
     }
 
 }

@@ -1,17 +1,10 @@
+#pragma once
 #ifndef YOLOV11_INFERENCE_HPP
 #define YOLOV11_INFERENCE_HPP
 #endif //YOLOV11_INFERENCE_HPP
-#include <opencv2/opencv.hpp>
-#include <opencv2/dnn.hpp>
-#include <iostream>
-#include <string>
-#include <vector>
-#include <filesystem>
-#include <chrono>
 
-namespace fs = std::__fs::filesystem;
-using namespace std;
-using cv::Mat;
+#include"Common.hpp"
+
 
 class Inference {
 public:
@@ -19,13 +12,17 @@ public:
     vector<std::string> classes{"cat"};
     float conf_threshold = 0.45f;  // confidence threshold
     float nms_threshold = 0.50f;   // NMS threshold
+    float scale;
+    int origin_col, origin_row;
+    std::vector<int> class_ids;
 
-    static cv::Mat formatToSquare(const cv::Mat &source) {
-        int col = source.cols;
-        int row = source.rows;
-        int _max = MAX(col, row);
+    cv::Mat formatToSquare(const cv::Mat &source) {
+        origin_col = source.cols;
+        origin_row = source.rows;
+
+        int _max = MAX(origin_col, origin_row);
         cv::Mat result = cv::Mat::zeros(_max, _max, CV_8UC3);
-        source.copyTo(result(cv::Rect(0, 0, col, row)));
+        source.copyTo(result(cv::Rect(0, 0, origin_col, origin_row)));
         return result;
     }
 
@@ -48,7 +45,7 @@ public:
 
 
         Mat frame_Square = formatToSquare(frame);
-        auto scale = float(frame_Square.cols / 640.0);
+        scale = float(frame_Square.cols / 640.0);
 
         cv::Mat input;
         cv::dnn::blobFromImage(frame_Square, input, 1.0 / 255.0, cv::Size(640, 640), cv::Scalar(), true, false);
@@ -66,7 +63,7 @@ public:
         auto *data = (float *) outputs[0].data;  // 8400*5
 
 
-        std::vector<int> class_ids;
+
         for (int i = 0; i < rows; ++i) {
             float classes_scores = data[i * 5 + 4];
 
@@ -87,7 +84,6 @@ public:
 
                 int left = int((x - 0.5 * w) * scale);
                 int top = int((y - 0.5 * h) * scale);
-
                 int width = int(w * scale);
                 int height = int(h * scale);
 
@@ -96,11 +92,25 @@ public:
         }
     }
 
-    cv::Mat nms() {
+    tuple<cv::Mat, vector<vector<float>>> nms() {
+        vector<cv::Rect> final_boxes;
+        final_boxes.clear();
         std::vector<int> nms_result;
         cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
         for (int idx: nms_result) {
+
+            float class_id = class_ids[idx];
             cv::Rect box = boxes[idx];
+            final_boxes.emplace_back(box);
+            float x, y, w, h;
+            w = float(box.width)/ scale;
+            h = float(box.height)/ scale;
+            x = float(float(box.x)/scale + 0.5 * w) / origin_col *scale;
+            y = float(float(box.y)/scale + 0.5 * h) / origin_row *scale;
+            w = w / origin_col  *scale;
+            h = h / origin_row  *scale;
+
+            labels.emplace_back(vector<float>{class_id, x, y, w, h});
             cv::rectangle(frame, box, cv::Scalar(0, 255, 0), 3); // 绘制矩形框
             float alpha = 0.2;
             cv::Mat overlay;
@@ -109,12 +119,17 @@ public:
             cv::rectangle(overlay, box, cv::Scalar(0, 255, 0), -1);
             cv::addWeighted(overlay, alpha, frame, 1.0 - alpha / 255.0, 0, frame);
         }
-        return frame;
+        if (nms_result.empty()){
+            return make_tuple(frame, vector<std::vector<float>>{});
+        }
+        return make_tuple(frame, labels);
 
     }
 
 private:
-    std::vector<cv::Rect> boxes;
-    std::vector<float> confidences;
-    cv::Mat frame;
+
+    vector<cv::Rect> boxes;
+    vector<vector<float>> labels;
+    vector<float> confidences;
+    Mat frame;
 };

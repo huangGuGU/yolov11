@@ -69,6 +69,6 @@ def inference(imgdir_path, save_path, weights_path, generate_label):
 
 
 if __name__ == '__main__':
-    imgdir_path = r'/Users/hzh/Desktop/catframe'
+    imgdir_path = r'/Users/hzh/Desktop/frames'
     save_path = r'/Users/hzh/Desktop/catframe_inferred'
-    inference(imgdir_path, save_path, "/Volumes/T7Shield/v11/ultralytics/runs/detect/train34/weights/best.onnx",False)
+    inference(imgdir_path, save_path, "../best.onnx",False)
