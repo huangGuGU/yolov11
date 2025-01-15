@@ -1,7 +1,7 @@
 #pragma once
-#ifndef YOLOV11_INFERENCE_HPP
-#define YOLOV11_INFERENCE_HPP
-#endif //YOLOV11_INFERENCE_HPP
+#ifndef YOLO_INFERENCE_HPP
+#define YOLO_INFERENCE_HPP
+#endif //YOLO_INFERENCE_HPP
 
 #include"Common.hpp"
 
@@ -99,16 +99,16 @@ public:
         cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
         for (int idx: nms_result) {
 
-            float class_id = class_ids[idx];
+            auto class_id = float(class_ids[idx]);
             cv::Rect box = boxes[idx];
             final_boxes.emplace_back(box);
             float x, y, w, h;
             w = float(box.width)/ scale;
             h = float(box.height)/ scale;
-            x = float(float(box.x)/scale + 0.5 * w) / origin_col *scale;
-            y = float(float(box.y)/scale + 0.5 * h) / origin_row *scale;
-            w = w / origin_col  *scale;
-            h = h / origin_row  *scale;
+            x = float(float(box.x)/scale + 0.5 * w) / float(origin_col) *scale;
+            y = float(float(box.y)/scale + 0.5 * h) / float(origin_row) *scale;
+            w = w / float(origin_col)  *scale;
+            h = h / float(origin_row)  *scale;
 
             labels.emplace_back(vector<float>{class_id, x, y, w, h});
             cv::rectangle(frame, box, cv::Scalar(0, 255, 0), 3); // 绘制矩形框

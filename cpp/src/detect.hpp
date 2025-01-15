@@ -65,7 +65,6 @@ void video_detect(const string &video_path, const string &output_path) {
             cerr << "Error: Couldn't open the video file." << endl;
             return;
         }
-
         // 获取视频的帧率、帧数等信息
         int fps = int(cap.get(cv::CAP_PROP_FPS));
         int totalFrames = int(cap.get(cv::CAP_PROP_FRAME_COUNT));
@@ -73,7 +72,6 @@ void video_detect(const string &video_path, const string &output_path) {
         int height = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
         int videoLength = totalFrames / fps;
         cout << "video length: " <<videoLength << " s"<<endl;
-
 
         string output_video_path = output_path + "/" + string(entry.path().filename());
         cv::VideoWriter writer(output_video_path, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), fps,
@@ -99,5 +97,4 @@ void video_detect(const string &video_path, const string &output_path) {
         cout << entry.path().filename() << " done    "<< "Elapsed time: " << duration.count()/1000 << " s" << endl;
         cout <<"------------------------------------------------------------------------------------------"<< endl;
     }
-
 }
