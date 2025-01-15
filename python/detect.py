@@ -90,4 +90,4 @@ class Detect:
 
 if __name__ == '__main__':
     D = Detect()
-    D.online_inference_computer_camera()
+    # D.online_inference_computer_camera()

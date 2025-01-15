@@ -21,7 +21,9 @@ void write2txt(const string &txt_path,const string &label){
     file.close();
 }
 
+
 void spilt_video(const string &video_path,const string &label_output_path,const string &img_output_path,const int&skip) {
+    make_dir(label_output_path);make_dir(img_output_path);
     Inference I;
     int total_number = 0;
     for (const auto &entry: fs::directory_iterator(video_path)) {
@@ -44,8 +46,9 @@ void spilt_video(const string &video_path,const string &label_output_path,const 
             Mat frame;
             cap >> frame;
             if (frame.empty()) {
-                break; // 如果没有帧了，退出循环
+                break;
             }
+
             if (j % skip == 0) {
                 string img_path = img_output_path + "/" + string(entry.path().filename())+"_"+to_string(j) + ".jpg";
                 cv::imwrite(img_path,frame);
@@ -69,7 +72,6 @@ void spilt_video(const string &video_path,const string &label_output_path,const 
                         write2txt(txt_path, oss.str());
                         oss.str("");
                         oss.clear();
-
                     }
                 }
             }
@@ -79,4 +81,51 @@ void spilt_video(const string &video_path,const string &label_output_path,const 
         total_number = total_number+number;
     }
     cout<<"\n"<<"\n"<<"total number: "<<total_number<<endl;
+}
+
+
+void delete_empty_label_file(const string &label_dir_path,const string &img_dir_path,const string &delete_label_path,const string &new_img_path){
+    make_dir(delete_label_path);make_dir(new_img_path);
+
+
+    vector<string> label_list;
+
+    for (const auto& entry : fs::directory_iterator(label_dir_path)) {
+        if (entry.is_regular_file()) {
+            string filename = entry.path().filename().string();
+            if (filename != ".DS_Store" && filename != "classes.txt") {
+                label_list.push_back(filename);
+            }
+        }
+    }
+    // 遍历标签列表
+    for (const auto& label_name : label_list) {
+        string label_path = label_dir_path + "/" + label_name;
+        string delete_path = delete_label_path + "/" + label_name;
+
+        // 打开标签文件并读取内容
+        ifstream file(label_path);
+        if (!file.is_open()) {
+            cerr << "Failed to open file: " << label_path << std::endl;
+            continue;
+        }
+
+        string content;
+        getline(file, content, '\0'); // 读取整个文件内容
+        file.close();
+
+        // 如果内容为空，移动标签文件
+        if (content.empty()) {
+            fs::rename(label_path, delete_path);
+
+        }
+        else {
+            // 如果内容不为空，复制图片文件
+            string img_path = img_dir_path + "/" + label_name.substr(0, label_name.size() - 3) + "jpg";
+            string img_copy_path = new_img_path + "/" + label_name.substr(0, label_name.size() - 3) + "jpg";
+            fs::copy(img_path, img_copy_path);
+
+        }
+    }
+
 }

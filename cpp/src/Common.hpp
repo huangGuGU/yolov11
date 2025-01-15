@@ -18,3 +18,10 @@
 namespace fs = std::__fs::filesystem;
 using namespace std;
 using cv::Mat;
+
+
+void make_dir(const string &dirPath){
+    if (!fs::exists(dirPath)) {
+        fs::create_directory(dirPath);  // 创建目录
+    }
+}
