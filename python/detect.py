@@ -10,12 +10,12 @@ import mss
 
 class Detect:
     def __init__(self):
-        self.video_dir_path = r'/Users/hzh/Desktop/catvideo'
-        self.inferred_video_path = r'/Users/hzh/Desktop/inferred_catvideo'
+        self.video_dir_path = r'/Users/hzh/Desktop/cat_video'
+        self.inferred_video_path = r'/Users/hzh/Desktop/inferred'
         self.frames_path = r'/Users/hzh/Desktop/frames'
-        self.weights_path = r'/Volumes/T7Shield/v11/ultralytics/runs/detect/train34/weights/best.pt'
+        self.weights_path = r'../best.pt'
         self.generate_label = False
-        self.real_inference = True
+        self.real_inference = False
 
     def online_inference_computer_camera(self):
         model = YOLO(self.weights_path)

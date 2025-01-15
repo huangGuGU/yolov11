@@ -60,10 +60,12 @@ void vide_detect(const string &video_path, const string &output_path) {
         }
 
         // 获取视频的帧率、帧数等信息
-        auto fps = float(cap.get(cv::CAP_PROP_FPS));
+        int fps = int(cap.get(cv::CAP_PROP_FPS));
         int totalFrames = int(cap.get(cv::CAP_PROP_FRAME_COUNT));
         int width = int(cap.get(cv::CAP_PROP_FRAME_WIDTH));
         int height = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
+        int videoLength = totalFrames / fps;
+        cout << "video length: " <<videoLength << " s"<<endl;
 
 
         string output_video_path = output_path + "/" + string(entry.path().filename());
