@@ -1,0 +1,94 @@
+//
+// Created by 黄梓浩 on 2025/1/15.
+//
+
+#ifndef CPP_DETECT_HPP
+#define CPP_DETECT_HPP
+
+#endif //CPP_DETECT_HPP
+#include "inference.hpp"
+
+void camera_detect() {
+    Inference I;
+    cv::VideoCapture cap(0);
+
+    if (!cap.isOpened()) {
+        std::cerr << "Error: Could not open camera." << std::endl;
+        return;
+    }
+    cv::Mat frame;
+    while (true) {
+        cap >> frame;
+        if (frame.empty()) {
+            std::cerr << "Error: Could not grab frame." << std::endl;
+            break;
+        }
+        I.get_img(frame);
+        I.infer_img();
+        cv::imshow("Detections", I.nms());
+        cv::waitKey(1);
+    }
+    cap.release();
+    cv::destroyAllWindows();
+}
+
+void img_detect(const string &img_path) {
+    Inference I;
+    for (const auto &entry: fs::directory_iterator(img_path)) {
+        if (entry.path().filename() == ".DS_Store") {
+            continue;
+        }
+        I.get_img(entry.path());
+        I.infer_img();
+        cv::imshow("Detections", I.nms());
+        cv::waitKey(1);
+    }
+}
+
+void vide_detect(const string &video_path, const string &output_path) {
+    Inference I;
+    for (const auto &entry: fs::directory_iterator(video_path)) {
+        if (entry.path().filename() == ".DS_Store") {
+            continue;
+        }
+        cout << entry.path().filename() << " processing..."<<endl;
+        auto start = std::chrono::high_resolution_clock::now();
+        cv::VideoCapture cap(entry.path());
+        if (!cap.isOpened()) {
+            cerr << "Error: Couldn't open the video file." << endl;
+            return;
+        }
+
+        // 获取视频的帧率、帧数等信息
+        auto fps = float(cap.get(cv::CAP_PROP_FPS));
+        int totalFrames = int(cap.get(cv::CAP_PROP_FRAME_COUNT));
+        int width = int(cap.get(cv::CAP_PROP_FRAME_WIDTH));
+        int height = int(cap.get(cv::CAP_PROP_FRAME_HEIGHT));
+
+
+        string output_video_path = output_path + "/" + string(entry.path().filename());
+        cv::VideoWriter writer(output_video_path, cv::VideoWriter::fourcc('m', 'p', '4', 'v'), fps,
+                               cv::Size(width, height));
+        cap.set(cv::CAP_PROP_POS_FRAMES, 0);
+
+        // 循环读取视频的每一帧，直到达到切割的结束帧
+        for (int j = 0; j < totalFrames; ++j) {
+            Mat frame;
+            cap >> frame;
+            if (frame.empty()) {
+                break; // 如果没有帧了，退出循环
+            }
+            I.get_img(frame);
+            I.infer_img();
+            frame = I.nms();
+            writer.write(frame);
+        }
+        // 释放资源
+        cap.release();
+        auto end = std::chrono::high_resolution_clock::now();
+        auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+        cout << entry.path().filename() << " done    "<< "Elapsed time: " << duration.count()/1000 << " s" << endl;
+
+    }
+
+}

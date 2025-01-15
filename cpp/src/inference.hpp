@@ -1,12 +1,13 @@
-#ifndef MYTOOLS_INFERENCE_HPP
-#define MYTOOLS_INFERENCE_HPP
-#endif //MYTOOLS_INFERENCE_HPP
+#ifndef YOLOV11_INFERENCE_HPP
+#define YOLOV11_INFERENCE_HPP
+#endif //YOLOV11_INFERENCE_HPP
 #include <opencv2/opencv.hpp>
 #include <opencv2/dnn.hpp>
 #include <iostream>
 #include <string>
 #include <vector>
 #include <filesystem>
+#include <chrono>
 
 namespace fs = std::__fs::filesystem;
 using namespace std;
@@ -95,7 +96,7 @@ public:
         }
     }
 
-    void nms_and_show() {
+    cv::Mat nms() {
         std::vector<int> nms_result;
         cv::dnn::NMSBoxes(boxes, confidences, conf_threshold, nms_threshold, nms_result);
         for (int idx: nms_result) {
@@ -108,8 +109,8 @@ public:
             cv::rectangle(overlay, box, cv::Scalar(0, 255, 0), -1);
             cv::addWeighted(overlay, alpha, frame, 1.0 - alpha / 255.0, 0, frame);
         }
-        cv::imshow("Detections", frame);
-        cv::waitKey(1);
+        return frame;
+
     }
 
 private:
