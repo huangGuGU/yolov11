@@ -28,9 +28,11 @@ void make_dir(const string &dirPath);
 class Inference {
 public:
     string model_path = "../../best.onnx";
-    vector<std::string> classes{"cat"};
-    float conf_threshold = 0.45f;
-    float nms_threshold = 0.50f;
+
+//    string model_path = "/Users/hzh/Desktop/yolo11n.onnx";
+    vector<std::string> classes{"column"};
+    float conf_threshold = 0.25f;
+    float nms_threshold = 0.450f;
     float scale;
     int origin_col, origin_row;
     std::vector<int> class_ids;

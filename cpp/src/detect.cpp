@@ -27,24 +27,30 @@ void camera_detect() {
 }
 
 void img_detect(const string &img_path,const string &save_path) {
+    make_dir(save_path);
     Inference I;
     vector<vector<float>> labels;
     cv::Mat frame;
+
     for (const auto &entry: fs::directory_iterator(img_path)) {
         if (entry.path().filename() == ".DS_Store") {
             continue;
         }
         I.get_img(entry.path());
+
+
         I.infer_img();
         tie(frame,labels) = I.nms();
         string save_img_path = save_path+"/"+string(entry.path().filename());
         cv::imwrite( save_img_path,frame);
         cv::imshow("Detections", frame);
         cv::waitKey(1);
+        cv::destroyAllWindows();
     }
 }
 
 void video_detect(const string &video_path, const string &output_path) {
+    make_dir(output_path);
     Inference I;
     for (const auto &entry: fs::directory_iterator(video_path)) {
         if (entry.path().filename() == ".DS_Store") {
@@ -86,7 +92,7 @@ void video_detect(const string &video_path, const string &output_path) {
         cap.release();
         auto end = std::chrono::high_resolution_clock::now();
         auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
-        cout << entry.path().filename() << "           Elapsed time: " << duration.count()/1000 << " s" << endl;
+        cout << "           Elapsed time: " << duration.count()/1000 << " s" << endl;
         cout <<string(160, '-')<< endl;
     }
 }

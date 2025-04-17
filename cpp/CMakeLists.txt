@@ -3,7 +3,8 @@ project(cpp)
 
 set(CMAKE_CXX_STANDARD 14)
 
-find_package(OpenCV REQUIRED)
+#find_package(OpenCV REQUIRED)
+find_package(OpenCV REQUIRED PATHS "/usr/local/include/opencv4")
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 add_executable(cpp src/main.cpp

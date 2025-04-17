@@ -1,26 +1,29 @@
 #include "Common.hpp"
 
 
-void make_dir(const string &dirPath){
+void make_dir(const string &dirPath) {
     if (!fs::exists(dirPath)) {
-    fs::create_directory(dirPath);  // 创建目录
+        fs::create_directory(dirPath);  // 创建目录
     }
 
 }
 
-void write2txt(const string &txt_path,const string &label){
+void write2txt(const string &txt_path, const string &label) {
     ofstream file(txt_path);
 
     if (!file.is_open()) {
         std::cerr << "无法打开文件！" << std::endl;
         return;
     }
-    file << label<< endl;
+    file << label << endl;
     file.close();
 }
 
-void split_video_generate_label(const string &video_path,const string &label_output_path,const string &img_output_path,const int&skip) {
-    make_dir(label_output_path);make_dir(img_output_path);
+void
+split_video_generate_label(const string &video_path, const string &label_output_path, const string &img_output_path,
+                           const int &skip) {
+    make_dir(label_output_path);
+    make_dir(img_output_path);
     Inference I;
     int total_number = 0;
     for (const auto &entry: fs::directory_iterator(video_path)) {
@@ -28,7 +31,7 @@ void split_video_generate_label(const string &video_path,const string &label_out
             continue;
         }
         int number = 0;
-        cout << entry.path().filename()  ;
+        cout << entry.path().filename();
 
         cv::VideoCapture cap(entry.path());
         if (!cap.isOpened()) {
@@ -47,14 +50,15 @@ void split_video_generate_label(const string &video_path,const string &label_out
             }
 
             if (j % skip == 0) {
-                string img_path = img_output_path + "/" + string(entry.path().filename())+"_"+to_string(j) + ".jpg";
-                cv::imwrite(img_path,frame);
+                string img_path = img_output_path + "/" + string(entry.path().filename()) + "_" + to_string(j) + ".jpg";
+                cv::imwrite(img_path, frame);
                 I.get_img(frame);
                 I.infer_img();
                 tie(frame, labels) = I.nms();
-                string txt_path = label_output_path + "/" + string(entry.path().filename())+"_"+to_string(j) + ".txt";
+                string txt_path =
+                        label_output_path + "/" + string(entry.path().filename()) + "_" + to_string(j) + ".txt";
                 ostringstream oss;
-                if (!labels.empty()){
+                if (!labels.empty()) {
                     number++;
                 }
                 for (size_t i = 0; i < labels.size(); ++i) {
@@ -65,7 +69,7 @@ void split_video_generate_label(const string &video_path,const string &label_out
                             oss << " ";
                         }
                     }
-                    if (!oss.str().empty()){
+                    if (!oss.str().empty()) {
                         write2txt(txt_path, oss.str());
                         oss.str("");
                         oss.clear();
@@ -74,19 +78,21 @@ void split_video_generate_label(const string &video_path,const string &label_out
             }
         }
         cap.release();
-        cout<<"        number: "<<number<<endl;
-        total_number = total_number+number;
+        cout << "        number: " << number << endl;
+        total_number = total_number + number;
     }
-    cout<<"\n"<<"\n"<<"total number: "<<total_number<<endl;
+    cout << "\n" << "\n" << "total number: " << total_number << endl;
 }
 
 
-void delete_empty_label_file(const string &label_dir_path,const string &img_dir_path,const string &delete_label_path,const string &new_img_path){
-    make_dir(delete_label_path);make_dir(new_img_path);
+void delete_empty_label_file(const string &label_dir_path, const string &img_dir_path, const string &delete_label_path,
+                             const string &new_img_path) {
+    make_dir(delete_label_path);
+    make_dir(new_img_path);
 
     vector<string> label_list;
 
-    for (const auto& entry : fs::directory_iterator(label_dir_path)) {
+    for (const auto &entry: fs::directory_iterator(label_dir_path)) {
         if (entry.is_regular_file()) {
             string filename = entry.path().filename().string();
             if (filename != ".DS_Store" && filename != "classes.txt") {
@@ -95,7 +101,7 @@ void delete_empty_label_file(const string &label_dir_path,const string &img_dir_
         }
     }
     // 遍历标签列表
-    for (const auto& label_name : label_list) {
+    for (const auto &label_name: label_list) {
         string label_path = label_dir_path + "/" + label_name;
         string delete_path = delete_label_path + "/" + label_name;
 
@@ -112,8 +118,7 @@ void delete_empty_label_file(const string &label_dir_path,const string &img_dir_
         // 如果内容为空，移动标签文件
         if (content.empty()) {
             fs::rename(label_path, delete_path);
-        }
-        else {
+        } else {
             // 如果内容不为空，复制图片文件
             string img_path = img_dir_path + "/" + label_name.substr(0, label_name.size() - 3) + "jpg";
             string img_copy_path = new_img_path + "/" + label_name.substr(0, label_name.size() - 3) + "jpg";
